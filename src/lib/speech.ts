@@ -30,6 +30,16 @@ export function getRecognitionCtor(): (new () => SR) | null {
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 }
 export const isRecognitionSupported = () => !!getRecognitionCtor();
+
+/**
+ * Brave exposes webkitSpeechRecognition but has no speech backend, so start()
+ * always fails with a "network" error. Detect it so the UI can say so plainly.
+ */
+export function isBrave(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const n = navigator as Navigator & { brave?: unknown };
+  return !!n.brave || /\bBrave\b/i.test(n.userAgent);
+}
 export const isSynthesisSupported = () =>
   typeof window !== "undefined" && "speechSynthesis" in window;
 

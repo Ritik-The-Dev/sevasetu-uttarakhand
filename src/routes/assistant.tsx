@@ -32,7 +32,13 @@ type Msg = {
   at: number;
   data?: AssistantResponse;
 };
-type Convo = { id: string; title: string; topic: string | null; messages: Msg[] };
+type Convo = {
+  id: string;
+  title: string;
+  topic: string | null;
+  serviceId: string | null;
+  messages: Msg[];
+};
 type Failed = { convoId: string; text: string; forcedIntent?: string | undefined };
 
 export type AssistantSearch = { q?: string; voice?: boolean; conversation?: string };
@@ -145,7 +151,7 @@ function Assistant() {
       try {
         const data = respond(
           text,
-          { topic: convo.topic },
+          { topic: convo.topic, serviceId: convo.serviceId ?? null },
           {
             uiLang: lang,
             forcedIntent,
@@ -162,7 +168,12 @@ function Assistant() {
         setConvos((cs) =>
           cs.map((c) =>
             c.id === convo.id
-              ? { ...c, topic: data.topic ?? c.topic, messages: [...c.messages, msg] }
+              ? {
+                  ...c,
+                  topic: data.topic ?? c.topic,
+                  serviceId: data.service_id ?? c.serviceId ?? null,
+                  messages: [...c.messages, msg],
+                }
               : c,
           ),
         );
@@ -180,7 +191,13 @@ function Assistant() {
     if (!clean || typing) return;
     let convo = active;
     if (!convo) {
-      convo = { id: uid(), title: clean.slice(0, 40), topic: null, messages: [] };
+      convo = {
+        id: uid(),
+        title: clean.slice(0, 40),
+        topic: null,
+        serviceId: null,
+        messages: [],
+      };
     }
     const userMsg: Msg = { id: uid(), role: "user", text: clean, at: Date.now() };
     const withUser: Convo = {
@@ -566,6 +583,14 @@ function Assistant() {
               {t(
                 "आपका ब्राउज़र आवाज़ पहचान का समर्थन नहीं करता (Chrome/Edge आज़माएं)। आप टाइप कर सकते हैं।",
                 "Your browser doesn't support speech recognition (try Chrome/Edge). You can type instead.",
+              )}
+            </p>
+          )}
+          {v.supported && v.brave && !v.error && (
+            <p className="mb-2 text-sm text-muted-foreground">
+              {t(
+                "Brave ब्राउज़र में आवाज़ पहचान काम नहीं करती (Brave की सीमा है)। यही पेज Chrome या Edge में खोलें — या नीचे टाइप करें।",
+                "Brave doesn't provide speech recognition (a Brave limitation). Open this page in Chrome or Edge — or type below.",
               )}
             </p>
           )}

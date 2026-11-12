@@ -146,3 +146,67 @@ describe("eligibility & catalogue honesty", () => {
   it("readiness is 60% for 3 of 5", () => expect(readinessPercent(5, 3)).toBe(60));
   it("readiness is 0% for an empty checklist", () => expect(readinessPercent(5, 0)).toBe(0));
 });
+
+describe("service follow-up answers", () => {
+  const ctx = { topic: "certificates", serviceId: "income-certificate" };
+
+  it("answers a documents follow-up for the service in context", () => {
+    const r = respond("इसके लिए कौन से दस्तावेज चाहिए?", ctx, ui);
+    expect(r.intent).toBe("answer_documents");
+    expect(r.service_id).toBe("income-certificate");
+    expect(r.response_text).toContain("पहचान प्रमाण");
+  });
+
+  it("stays honest about unverified fees and time", () => {
+    const fee = respond("फीस कितनी है?", ctx, ui);
+    expect(fee.intent).toBe("answer_fees");
+    expect(fee.response_text).toMatch(/सत्यापित/);
+    const time = respond("कितना समय लगेगा?", ctx, ui);
+    expect(time.intent).toBe("answer_time");
+    expect(time.response_text).toMatch(/सत्यापित/);
+  });
+
+  it("lists application steps and eligibility conditions", () => {
+    expect(respond("आवेदन कैसे करें?", ctx, ui).intent).toBe("answer_apply");
+    const e = respond("पात्रता क्या है?", ctx, ui);
+    expect(e.intent).toBe("answer_eligibility");
+    expect(e.response_text).toContain("उत्तराखंड का निवासी");
+  });
+
+  it("answers a service question with its detail in one step", () => {
+    const r = respond("आय प्रमाण पत्र के लिए क्या दस्तावेज चाहिए?", { topic: null }, ui);
+    expect(r.intent).toBe("answer_documents");
+    expect(r.recommended_services).toEqual(["income-certificate"]);
+  });
+
+  it("asks which service when a detail question has no context", () => {
+    const r = respond("दस्तावेज क्या चाहिए?", { topic: null }, ui);
+    expect(r.intent).toBe("detail_clarify");
+    expect(r.clarification_required).toBe(true);
+    expect(r.follow_up_questions.length).toBeGreaterThan(0);
+  });
+
+  it("refuses to invent services outside the catalogue", () => {
+    const r = respond("मुझे पासपोर्ट बनवाना है", { topic: null }, ui);
+    expect(r.intent).toBe("no_catalogue_match");
+    expect(r.recommended_services).toEqual([]);
+  });
+
+  it("explains that it is a rule-based demo, not official", () => {
+    const r = respond("क्या तुम AI हो?", { topic: null }, ui);
+    expect(r.intent).toBe("about_assistant");
+    expect(r.response_text).toMatch(/सरकारी सिस्टम से जुड़ा नहीं/);
+  });
+
+  it("keeps the service context across a follow-up chain", () => {
+    const first = respond("मुझे आय प्रमाण पत्र चाहिए", { topic: null }, ui);
+    expect(first.service_id).toBe("income-certificate");
+    const next = respond(
+      "कहाँ जाना है?",
+      { topic: first.topic, serviceId: first.service_id },
+      ui,
+    );
+    expect(next.intent).toBe("answer_office");
+    expect(next.response_text).not.toMatch(/https?:\/\//);
+  });
+});

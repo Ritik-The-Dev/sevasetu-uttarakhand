@@ -1,12 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import { isRecognitionSupported, startRecognition, type RecognitionHandle } from "@/lib/speech";
+import {
+  isBrave,
+  isRecognitionSupported,
+  startRecognition,
+  type RecognitionHandle,
+} from "@/lib/speech";
 
 export function useVoiceInput(onText: (t: string, final: boolean) => void) {
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [supported, setSupported] = useState(true);
+  const [brave, setBrave] = useState(false);
   const ref = useRef<RecognitionHandle | null>(null);
-  useEffect(() => setSupported(isRecognitionSupported()), []);
+  useEffect(() => {
+    setSupported(isRecognitionSupported());
+    setBrave(isBrave());
+  }, []);
   useEffect(() => () => ref.current?.stop(), []);
   const toggle = (lang: "hi-IN" | "en-IN") => {
     if (listening) {
@@ -31,7 +40,7 @@ export function useVoiceInput(onText: (t: string, final: boolean) => void) {
     ref.current = h;
     setListening(true);
   };
-  return { listening, error, supported, toggle };
+  return { listening, error, supported, brave, toggle };
 }
 
 export function voiceErrorText(code: string, t: (hi: string, en: string) => string) {
@@ -44,8 +53,8 @@ export function voiceErrorText(code: string, t: (hi: string, en: string) => stri
     return t("कोई आवाज़ नहीं सुनाई दी। फिर से कोशिश करें।", "No speech was heard. Please try again.");
   if (code === "network")
     return t(
-      "आवाज़ पहचान के लिए इंटरनेट चाहिए। आप टाइप कर सकते हैं।",
-      "Speech recognition needs a network connection. You can type instead.",
+      "आवाज़ पहचान सेवा तक नहीं पहुँच सके। Chrome या Edge में खोलें, इंटरनेट/प्रॉक्सी जांचें — या टाइप करें।",
+      "Could not reach the speech service. Open in Chrome or Edge, check your network/proxy — or type instead.",
     );
   if (code === "aborted") return "";
   return t(
