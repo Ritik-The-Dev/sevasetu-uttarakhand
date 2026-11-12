@@ -12,6 +12,10 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { PrefsProvider } from "@/lib/prefs";
+import { SiteHeader } from "@/components/seva/SiteHeader";
+import { SiteFooter } from "@/components/seva/SiteFooter";
+import { DemoNotice } from "@/components/seva/DemoBadge";
 
 function NotFoundComponent() {
   return (
@@ -81,11 +85,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "SevaSetu Uttarakhand" },
+      { name: "description", content: "Hindi-first citizen service navigator for Uttarakhand (prototype)." },
+      { property: "og:title", content: "SevaSetu Uttarakhand" },
+      { property: "og:description", content: "Hindi-first citizen service navigator (prototype)." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -95,6 +98,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
@@ -106,7 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="hi">
       <head>
         <HeadContent />
       </head>
@@ -124,7 +129,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <PrefsProvider>
+        <DemoNotice />
+        <SiteHeader />
+        <main id="main" className="min-h-[70vh]"><Outlet /></main>
+        <SiteFooter />
+      </PrefsProvider>
     </QueryClientProvider>
   );
 }
