@@ -134,7 +134,9 @@
   --input: oklch(0.3 0 0);
   --ring: oklch(0.2 0.1 262);
 }
-.large-text { font-size: 118.75%; }
+.large-text {
+  font-size: 118.75%;
+}
 
 .dark {
   --background: oklch(0.129 0.042 264.695);
@@ -183,15 +185,84 @@
 }
 
 @layer base {
-  body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
-  :focus-visible { outline: 3px solid var(--color-ring); outline-offset: 2px; }
-  [lang="hi"] { line-height: 1.7; }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+  [lang="hi"] {
+    line-height: 1.7;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--secondary) 28%, transparent);
+  }
 }
-@utility shadow-card { box-shadow: var(--shadow-card); }
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
 @utility hills-bg {
-  background-image: radial-gradient(ellipse at 80% -10%, color-mix(in oklab, var(--saffron) 18%, transparent), transparent 55%),
-    radial-gradient(ellipse at 0% 110%, color-mix(in oklab, var(--secondary) 14%, transparent), transparent 55%);
+  background-image:
+    radial-gradient(
+      ellipse at 80% -10%,
+      color-mix(in oklab, var(--saffron) 18%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at 0% 110%,
+      color-mix(in oklab, var(--secondary) 14%, transparent),
+      transparent 55%
+    );
 }
-@keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--destructive) 55%, transparent); } 100% { box-shadow: 0 0 0 18px transparent; } }
-@utility recording { animation: pulse-ring 1.2s ease-out infinite; }
-@media print { header, footer, .no-print { display: none !important; } }
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--destructive) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 18px transparent;
+  }
+}
+@utility recording {
+  animation: pulse-ring 1.2s ease-out infinite;
+}
+
+/* Respect the user's motion preference across the whole experience. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  main {
+    min-height: 0 !important;
+  }
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75rem;
+    color: #444;
+  }
+  .rounded-2xl,
+  .rounded-3xl {
+    break-inside: avoid;
+  }
+}

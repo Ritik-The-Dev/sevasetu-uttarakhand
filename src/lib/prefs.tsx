@@ -16,7 +16,9 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) setPrefs({ ...DEFAULT, ...JSON.parse(raw) });
-    } catch {}
+    } catch {
+      // Ignore malformed or unavailable storage and keep defaults.
+    }
   }, []);
   useEffect(() => {
     const el = document.documentElement;
@@ -27,7 +29,11 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
   const set = (p: Partial<Prefs>) =>
     setPrefs((cur) => {
       const next = { ...cur, ...p };
-      try { localStorage.setItem(KEY, JSON.stringify(next)); } catch {}
+      try {
+        localStorage.setItem(KEY, JSON.stringify(next));
+      } catch {
+        // Preferences still apply for this session even if storage is unavailable.
+      }
       return next;
     });
   const t = (hi: string, en: string) => (prefs.lang === "hi" ? hi : en);

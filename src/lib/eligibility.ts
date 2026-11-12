@@ -10,8 +10,17 @@ export type EligibilityResult = {
 };
 
 /** Deterministic rule engine. The assistant never decides eligibility — only these rules do. */
-export function evaluateEligibility(service: Service, answers: Record<string, string>): EligibilityResult {
-  const r: EligibilityResult = { outcome: "eligible", satisfied: [], notSatisfied: [], missing: [], verify: [] };
+export function evaluateEligibility(
+  service: Service,
+  answers: Record<string, string>,
+): EligibilityResult {
+  const r: EligibilityResult = {
+    outcome: "eligible",
+    satisfied: [],
+    notSatisfied: [],
+    missing: [],
+    verify: [],
+  };
   for (const rule of service.rules) {
     const a = answers[rule.questionId];
     if (!a || a === "unknown") r.missing.push(rule.label);
